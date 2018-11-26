@@ -306,3 +306,24 @@ for evt_idx in xrange(number_events):
     if halo_pileup_on and halo_pileup_ttree is not None and not not halo_pileup_str:
         f.write(halo_pileup_str)
 
+beam_plotter = hepevt.Plotter('beam', config)
+
+beam_plotter.plot_position(beam_x_dist, beam_y_dist, beam_z_dist)
+beam_plotter.plot_momentum(beam_momentum_dist,
+                           beam_momentum_x_dist,
+                           beam_momentum_y_dist,
+                           beam_momentum_z_dist,
+                           beam_angle_xz_dist,
+                           beam_angle_yz_dist)
+
+if halo_pileup_on:
+    halo_pileup_plotter = hepevt.Plotter('halo_pileup', config)
+    halo_pileup_plotter.plot_position(halo_pileup_x_dist, halo_pileup_y_dist, halo_pileup_z_dist)
+    halo_pileup_plotter.plot_momentum(halo_pileup_momentum_dist,
+                                      halo_pileup_momentum_x_dist,
+                                      halo_pileup_momentum_y_dist,
+                                      halo_pileup_momentum_z_dist,
+                                      halo_pileup_angle_xz_dist,
+                                      halo_pileup_angle_yz_dist)
+    halo_pileup_plotter.plot_number_particles(halo_pileup_number_particles_dist)
+
