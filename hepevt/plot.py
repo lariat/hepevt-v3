@@ -74,7 +74,10 @@ class Plotter:
             for pdg, dist in x.items():
                 x_dist.append(dist)
                 x_labels.append(pdg)
-            x_dist = np.array(x_dist)
+            if len(x) > 1:
+                x_dist = np.array(x_dist)
+            else:
+                x_dist = np.array(x_dist).flatten()
         else:
             x_dist = np.array(x)
 
@@ -83,7 +86,10 @@ class Plotter:
             for pdg, dist in y.items():
                 y_dist.append(dist)
                 y_labels.append(pdg)
-            y_dist = np.array(y_dist)
+            if len(y) > 1:
+                y_dist = np.array(y_dist)
+            else:
+                y_dist = np.array(y_dist).flatten()
         else:
             y_dist = np.array(y)
 
@@ -93,6 +99,10 @@ class Plotter:
                 z_dist.append(dist)
                 z_labels.append(pdg)
             z_dist = np.array(z_dist)
+            if len(z) > 1:
+                z_dist = np.array(z_dist)
+            else:
+                z_dist = np.array(z_dist).flatten()
         else:
             z_dist = np.array(z)
 
@@ -120,6 +130,8 @@ class Plotter:
         axarr[0, 0].set_ylabel('entries / %s cm' % str(x_bin_width))
         axarr[0, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        if x_stack:
+            axarr[0, 0].legend(prop={'size': 8}, loc='upper left')
 
         axarr[0, 1].hist(y_dist, y_bins, range=(y_range[0], y_range[1]),
                          alpha=0.75, histtype='stepfilled',
@@ -138,8 +150,8 @@ class Plotter:
         axarr[1, 0].set_ylabel('entries / %s cm' % z_bin_width)
         axarr[1, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 0].yaxis.set_minor_locator(AutoMinorLocator())
-        if z_stack:
-            axarr[1, 0].legend(prop={'size': 8})
+        #if z_stack:
+        #    axarr[1, 0].legend(prop={'size': 8})
 
         hist, xbins, ybins = np.histogram2d(np.hstack(x_dist), np.hstack(y_dist),
                                             bins=[ x_bins, y_bins ],
@@ -197,7 +209,10 @@ class Plotter:
             for pdg, dist in p.items():
                 p_dist.append(dist)
                 p_labels.append(pdg)
-            p_dist = np.array(p_dist)
+            if len(p) > 1:
+                p_dist = np.array(p_dist)
+            else:
+                p_dist = np.array(p_dist).flatten()
         else:
             p_dist = np.array(p)
 
@@ -206,7 +221,10 @@ class Plotter:
             for pdg, dist in px.items():
                 px_dist.append(dist)
                 px_labels.append(pdg)
-            px_dist = np.array(px_dist)
+            if len(px) > 1:
+                px_dist = np.array(px_dist)
+            else:
+                px_dist = np.array(px_dist).flatten()
         else:
             px_dist = np.array(px)
 
@@ -215,7 +233,10 @@ class Plotter:
             for pdg, dist in py.items():
                 py_dist.append(dist)
                 py_labels.append(pdg)
-            py_dist = np.array(py_dist)
+            if len(py) > 1:
+                py_dist = np.array(py_dist)
+            else:
+                py_dist = np.array(py_dist).flatten()
         else:
             py_dist = np.array(py)
 
@@ -224,7 +245,10 @@ class Plotter:
             for pdg, dist in pz.items():
                 pz_dist.append(dist)
                 pz_labels.append(pdg)
-            pz_dist = np.array(pz_dist)
+            if len(pz) > 1:
+                pz_dist = np.array(pz_dist)
+            else:
+                pz_dist = np.array(pz_dist).flatten()
         else:
             pz_dist = np.array(pz)
 
@@ -233,7 +257,10 @@ class Plotter:
             for pdg, dist in angle_xz.items():
                 angle_xz_dist.append(dist)
                 angle_xz_labels.append(pdg)
-            angle_xz_dist = np.array(angle_xz_dist)
+            if len(angle_xz) > 1:
+                angle_xz_dist = np.array(angle_xz_dist)
+            else:
+                angle_xz_dist = np.array(angle_xz_dist).flatten()
         else:
             angle_xz_dist = np.array(angle_xz)
 
@@ -242,7 +269,10 @@ class Plotter:
             for pdg, dist in angle_yz.items():
                 angle_yz_dist.append(dist)
                 angle_yz_labels.append(pdg)
-            angle_yz_dist = np.array(angle_yz_dist)
+            if len(angle_yz) > 1:
+                angle_yz_dist = np.array(angle_yz_dist)
+            else:
+                angle_yz_dist = np.array(angle_yz_dist).flatten()
         else:
             angle_yz_dist = np.array(angle_yz)
 
