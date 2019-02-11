@@ -55,6 +55,10 @@ class Plotter:
         self.particle_bin_low = config.getfloat('config', '%s_particle_bin_low' % prefix)
         self.particle_bin_high = config.getfloat('config', '%s_particle_bin_high' % prefix)
 
+        self.time_bins = config.getint('config', '%s_time_bins' % prefix)
+        self.time_bin_low = config.getfloat('config', '%s_time_bin_low' % prefix)
+        self.time_bin_high = config.getfloat('config', '%s_time_bin_high' % prefix)
+
     def plot_position(self, x, y, z):
 
         x_dist = []
@@ -175,8 +179,6 @@ class Plotter:
 
         #plt.show()
         plt.savefig(self.plot_output_dir + self.prefix + '_position.pdf')
-
-        return
 
     def plot_momentum(self, p, px, py, pz, angle_xz, angle_yz):
 
@@ -367,8 +369,6 @@ class Plotter:
         #plt.show()
         plt.savefig(self.plot_output_dir + self.prefix + '_momentum.pdf')
 
-        return
-
     def plot_number_particles(self, x):
 
         #x_dist = []
@@ -409,5 +409,135 @@ class Plotter:
         #plt.show()
         plt.savefig(self.plot_output_dir + self.prefix + '_number_particles.pdf')
 
-        return
+    def plot_time_offset(self, x0, y0, t0, x1):
+
+        x0_dist = []
+        y0_dist = []
+        t0_dist = []
+        x1_dist = []
+
+        x0_stack = False
+        y0_stack = False
+        t0_stack = False
+        x1_stack = False
+
+        x0_labels = []
+        y0_labels = []
+        t0_labels = []
+        x1_labels = []
+
+        if isinstance(x0, OrderedDict):
+            x0_stack = True
+            for pdg, dist in x0.items():
+                x0_dist.append(dist)
+                x0_labels.append(pdg)
+            if len(x0) > 1:
+                x0_dist = np.array(x0_dist)
+            else:
+                x0_dist = np.array(x0_dist).flatten()
+        else:
+            x0_dist = np.array(x0)
+
+        if isinstance(y0, OrderedDict):
+            y0_stack = True
+            for pdg, dist in y0.items():
+                y0_dist.append(dist)
+                y0_labels.append(pdg)
+            if len(y0) > 1:
+                y0_dist = np.array(y0_dist)
+            else:
+                y0_dist = np.array(y0_dist).flatten()
+        else:
+            y0_dist = np.array(y0)
+
+        if isinstance(t0, OrderedDict):
+            t0_stack = True
+            for pdg, dist in t0.items():
+                t0_dist.append(dist)
+                t0_labels.append(pdg)
+            if len(t0) > 1:
+                t0_dist = np.array(t0_dist)
+            else:
+                t0_dist = np.array(t0_dist).flatten()
+        else:
+            t0_dist = np.array(t0)
+
+        if isinstance(x1, OrderedDict):
+            x1_stack = True
+            for pdg, dist in x1.items():
+                x1_dist.append(dist)
+                x1_labels.append(pdg)
+            if len(x1) > 1:
+                x1_dist = np.array(x1_dist)
+            else:
+                x1_dist = np.array(x1_dist).flatten()
+        else:
+            x1_dist = np.array(x1)
+
+        x0_bins = self.position_x_bins
+        x0_range = (self.position_x_bin_low, self.position_x_bin_high)
+        x0_bin_width = (x0_range[1] - x0_range[0]) / x0_bins
+
+        y0_bins = self.position_y_bins
+        y0_range = (self.position_y_bin_low, self.position_y_bin_high)
+        y0_bin_width = (y0_range[1] - y0_range[0]) / y0_bins
+
+        t0_bins = self.time_bins
+        t0_range = (self.time_bin_low, self.time_bin_high)
+        t0_bin_width = (t0_range[1] - t0_range[0]) / t0_bins
+
+        x1_bins = self.position_x_bins
+        x1_range = (self.position_x_bin_low, self.position_x_bin_high)
+        x1_bin_width = (x1_range[1] - x1_range[0]) / x1_bins
+
+        title_prefix = self.title_prefix
+
+        fig, axarr = plt.subplots(2, 2)
+
+        axarr[0, 0].hist(x0_dist, x0_bins, range=(x0_range[0], x0_range[1]),
+                         alpha=0.75, histtype='stepfilled',
+                         stacked=x0_stack, label=x0_labels)
+        axarr[0, 0].set_title(r'%s $x_0$ distribution' % title_prefix)
+        axarr[0, 0].set_xlabel(r'$x_0$ [cm]')
+        axarr[0, 0].set_ylabel('entries / %s cm' % str(x0_bin_width))
+        axarr[0, 0].xaxis.set_minor_locator(AutoMinorLocator())
+        axarr[0, 0].yaxis.set_minor_locator(AutoMinorLocator())
+
+        axarr[0, 1].hist(t0_dist, t0_bins, range=(t0_range[0], t0_range[1]),
+                         alpha=0.75, histtype='stepfilled',
+                         stacked=t0_stack, label=t0_labels)
+        axarr[0, 1].set_title(r'%s $t_0$ distribution' % title_prefix)
+        axarr[0, 1].set_xlabel(r'$t_0$ [$\mu$s]')
+        axarr[0, 1].set_ylabel('entries / %s $\mu$s' % str(t0_bin_width))
+        axarr[0, 1].xaxis.set_minor_locator(AutoMinorLocator())
+        axarr[0, 1].yaxis.set_minor_locator(AutoMinorLocator())
+
+        axarr[1, 0].hist(x1_dist, x1_bins, range=(x1_range[0], x1_range[1]),
+                         alpha=0.75, histtype='stepfilled',
+                         stacked=x1_stack, label=x1_labels)
+        axarr[1, 0].set_title(r'%s $x_1$ distribution' % title_prefix)
+        axarr[1, 0].set_xlabel(r'$x_1$ [cm]')
+        axarr[1, 0].set_ylabel('entries / %s cm' % str(x1_bin_width))
+        axarr[1, 0].xaxis.set_minor_locator(AutoMinorLocator())
+        axarr[1, 0].yaxis.set_minor_locator(AutoMinorLocator())
+
+        hist, xbins, ybins = np.histogram2d(np.hstack(x0_dist), np.hstack(y0_dist),
+                                            bins=[ x0_bins, y0_bins ],
+                                            range=(x0_range, y0_range))
+        extent = [ xbins.min(), xbins.max(), ybins.min(), ybins.max() ]
+        im = axarr[1, 1].imshow(np.ma.masked_where(hist == 0, hist).T,
+                                interpolation='nearest', origin='lower',
+                                extent=extent)
+        axarr[1, 1].set_title(r'%s $x_0 y_0$ distribution' % title_prefix)
+        axarr[1, 1].set_xlabel(r'$x_0$ [cm]')
+        axarr[1, 1].set_ylabel(r'$y_0$ [cm]')
+        axarr[1, 1].set_xlim(x0_range)
+        axarr[1, 1].set_ylim(y0_range)
+        axarr[1, 1].xaxis.set_minor_locator(AutoMinorLocator())
+        axarr[1, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        color_bar = fig.colorbar(im)
+        color_bar.set_label(r'entries per %s cm $\times$ %s cm' % (x0_bin_width, y0_bin_width))
+
+        plt.tight_layout()
+        plt.savefig(self.plot_output_dir + self.prefix + '_time_offset.pdf')
 

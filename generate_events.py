@@ -79,6 +79,20 @@ particle_mass = {
     2212: 938.2720813,   # proton
     }
 
+# TPC bounds in the x-coordinate
+tpc_x_min =  0.0  # cm
+tpc_x_max = 47.5  # cm
+
+# fiducial padding
+fiducial_padding_x_low  = 5.0  # cm
+fiducial_padding_x_high = 5.0  # cm
+
+# drift velocity
+drift_window_ticks = 2528  # ticks
+time_per_tick      = 128   # ns
+drift_window_time  = drift_window_ticks * time_per_tick
+drift_velocity = (tpc_x_max - tpc_x_min) / drift_window_time
+
 #/////////////////////////////////////////////////////////////
 # ROOT
 #/////////////////////////////////////////////////////////////
@@ -136,6 +150,11 @@ halo_pileup_momentum_x_dist = []
 halo_pileup_momentum_y_dist = []
 halo_pileup_momentum_z_dist = []
 halo_pileup_number_particles_dist = []
+
+halo_pileup_x0_dist = []
+halo_pileup_y0_dist = []
+halo_pileup_t0_dist = []
+halo_pileup_x1_dist = []
 
 #/////////////////////////////////////////////////////////////
 # particle beam composition
@@ -218,6 +237,22 @@ for evt_idx in xrange(number_events):
             #    halo_pileup_pdg_codes[idx] for idx in np.random.randint(
             #        0, len(halo_pileup_pdg_codes), number_halo_pileup)])
 
+            halo_pileup_adjust_time_ = False
+            halo_pileup_x0_ = halo_pileup_x_
+            halo_pileup_t0_ = 0.0
+            halo_pileup_x1_ = halo_pileup_x_
+
+            #if (halo_pileup_x_ < tpc_x_min or halo_pileup_x_ > tpc_x_max):
+            #    halo_pileup_x0_ = np.random.uniform(tpc_x_min, tpc_x_max)
+            #    halo_pileup_t0_ = (halo_pileup_x1_ - halo_pileup_x0_) / drift_velocity
+            #    halo_pileup_adjust_time_ = True
+
+            if (halo_pileup_x_ < (tpc_x_min + fiducial_padding_x_low) or
+                halo_pileup_x_ > (tpc_x_max - fiducial_padding_x_high)):
+                halo_pileup_x0_ = np.random.uniform(tpc_x_min + fiducial_padding_x_low, tpc_x_max - fiducial_padding_x_high)
+                halo_pileup_t0_ = (halo_pileup_x1_ - halo_pileup_x0_) / drift_velocity
+                halo_pileup_adjust_time_ = True
+
             # append to halo pile-up string
             halo_pileup_str += (
                 '1' + ' ' +
@@ -227,10 +262,12 @@ for evt_idx in xrange(number_events):
                 str(halo_pileup_momentum_z_) + ' ' +
                 str(halo_pileup_energy_)     + ' ' +
                 str(halo_pileup_mass_)       + ' ' +
-                str(halo_pileup_x_)          + ' ' +
+                #str(halo_pileup_x_)          + ' ' +
+                str(halo_pileup_x0_)         + ' ' +
                 str(halo_pileup_y_)          + ' ' +
                 str(halo_pileup_z_)          + ' ' +
-                str(halo_pileup_time_)       + '\n')
+                #str(halo_pileup_time_)       + '\n')
+                str(halo_pileup_t0_)         + '\n')
 
             halo_pileup_x_dist.append(halo_pileup_x_)
             halo_pileup_y_dist.append(halo_pileup_y_)
@@ -241,6 +278,12 @@ for evt_idx in xrange(number_events):
             halo_pileup_momentum_x_dist.append(halo_pileup_momentum_x_ * 1000.0)
             halo_pileup_momentum_y_dist.append(halo_pileup_momentum_y_ * 1000.0)
             halo_pileup_momentum_z_dist.append(halo_pileup_momentum_z_ * 1000.0)
+
+            if halo_pileup_adjust_time_:
+                halo_pileup_x0_dist.append(halo_pileup_x0_)
+                halo_pileup_y0_dist.append(halo_pileup_y_)
+                halo_pileup_t0_dist.append(halo_pileup_t0_ / 1000.0)
+                halo_pileup_x1_dist.append(halo_pileup_x1_)
 
         halo_pileup_number_particles_dist.append(number_halo_pileup)
 
@@ -326,4 +369,8 @@ if halo_pileup_on:
                                       halo_pileup_angle_xz_dist,
                                       halo_pileup_angle_yz_dist)
     halo_pileup_plotter.plot_number_particles(halo_pileup_number_particles_dist)
+    halo_pileup_plotter.plot_time_offset(halo_pileup_x0_dist,
+                                         halo_pileup_y0_dist,
+                                         halo_pileup_t0_dist,
+                                         halo_pileup_x1_dist)
 
