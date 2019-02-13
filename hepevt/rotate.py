@@ -8,7 +8,7 @@ def rotate_xz(x, y, z, angle_xz):
 
     return np.array([ x_, y_, z_ ])
 
-def rotate_yz(x, y, z, theta_yz):
+def rotate_yz(x, y, z, angle_yz):
 
     x_ = x
     y_ = y * np.cos(angle_yz) + z * np.sin(angle_yz)
