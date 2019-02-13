@@ -67,6 +67,15 @@ halo_pileup_momentum_high = secondary_beam_energy  # GeV
 halo_pileup_pdg_codes = ast.literal_eval(config.get('config', 'halo_pileup_pdg_codes'))
 
 #/////////////////////////////////////////////////////////////
+# additional config
+#/////////////////////////////////////////////////////////////
+
+#measured_tracking_efficiency = 0.65
+measured_tracking_efficiency = 0.56
+measured_halo_pileup_poisson_mean = 0.78714624
+halo_pileup_poisson_mean = measured_halo_pileup_poisson_mean / measured_tracking_efficiency
+
+#/////////////////////////////////////////////////////////////
 # physical constants
 #/////////////////////////////////////////////////////////////
 
@@ -84,8 +93,8 @@ tpc_x_min =  0.0  # cm
 tpc_x_max = 47.5  # cm
 
 # fiducial padding
-fiducial_padding_x_low  = 5.0  # cm
-fiducial_padding_x_high = 5.0  # cm
+fiducial_padding_x_low  = 1.0  # cm
+fiducial_padding_x_high = 1.0  # cm
 
 # drift velocity
 drift_window_ticks = 2528  # ticks
@@ -187,7 +196,7 @@ for evt_idx in xrange(number_events):
 
     # initialize number of beam particles and halo pile-up particles
     number_beam = 1
-    number_halo_pileup = 0
+    number_halo_pileup_particles = 0
 
     # initialize strings for writing to output text file
     beam_str = ''
@@ -196,34 +205,33 @@ for evt_idx in xrange(number_events):
     # if halo pile-up TTree object is present
     if halo_pileup_on and halo_pileup_ttree is not None:
 
-        # draw random number for halo pile-up entry
-        halo_pileup_idx = np.random.randint(0, number_halo_pileup_entries)
-        halo_pileup_ttree.GetEntry(halo_pileup_idx)
-
         # get number of halo pile-up particles
-        number_halo_pileup = halo_pileup_ttree.halo_pileup_number_particles
+        number_halo_pileup_particles = np.random.poisson(halo_pileup_poisson_mean)
 
-        for pileup_idx in xrange(number_halo_pileup):
+        for pileup_idx in xrange(number_halo_pileup_particles):
+
+            # draw random number for halo pile-up entry
+            halo_pileup_idx = np.random.randint(0, number_halo_pileup_entries)
+            halo_pileup_ttree.GetEntry(halo_pileup_idx)
 
             # get PDG code of halo_pileup particle
             halo_pileup_pdg_code_ = halo_pileup_pdg_codes[np.random.randint(0, len(halo_pileup_pdg_codes))]
 
             # get halo pile-up particle position
-            halo_pileup_x_ = halo_pileup_ttree.halo_pileup_x[pileup_idx]
-            halo_pileup_y_ = halo_pileup_ttree.halo_pileup_y[pileup_idx]
-            halo_pileup_z_ = halo_pileup_ttree.halo_pileup_z[pileup_idx]
+            halo_pileup_x_ = halo_pileup_ttree.halo_pileup_x
+            halo_pileup_y_ = halo_pileup_ttree.halo_pileup_y
+            halo_pileup_z_ = halo_pileup_ttree.halo_pileup_z
 
             # get halo-pileup particle angle
-            halo_pileup_angle_xz_ = halo_pileup_ttree.halo_pileup_angle_xz[pileup_idx]
-            halo_pileup_angle_yz_ = halo_pileup_ttree.halo_pileup_angle_yz[pileup_idx]
+            halo_pileup_angle_xz_ = halo_pileup_ttree.halo_pileup_angle_xz
+            halo_pileup_angle_yz_ = halo_pileup_ttree.halo_pileup_angle_yz
 
             # get halo_pileup particle momentum
             #halo_pileup_momentum_ = halo_pileup.halo_pileup_momentum[pileup_idx] / 1000.0
             halo_pileup_momentum_ = np.random.uniform(halo_pileup_momentum_low, halo_pileup_momentum_high)
 
-            halo_pileup_momentum_x_, halo_pileup_momentum_y_, halo_pileup_momentum_z_ = hepevt.rotate(
-                0, 0, halo_pileup_momentum_,
-                halo_pileup_angle_xz_ * np.pi/180.0, halo_pileup_angle_yz_ * np.pi/180.0)
+            halo_pileup_momentum_x_, halo_pileup_momentum_y_, halo_pileup_momentum_z_ = hepevt.vector(
+                halo_pileup_momentum_, halo_pileup_angle_xz_ * np.pi/180.0, halo_pileup_angle_yz_ * np.pi/180.0)
 
             # compute halo_pileup particle mass and energy
             halo_pileup_mass_ = particle_mass[np.abs(halo_pileup_pdg_code_)] / 1000.0
@@ -235,7 +243,7 @@ for evt_idx in xrange(number_events):
 
             #halo_pileup_pdg_code = np.array([
             #    halo_pileup_pdg_codes[idx] for idx in np.random.randint(
-            #        0, len(halo_pileup_pdg_codes), number_halo_pileup)])
+            #        0, len(halo_pileup_pdg_codes), number_halo_pileup_particles)])
 
             halo_pileup_adjust_time_ = False
             halo_pileup_x0_ = halo_pileup_x_
@@ -285,10 +293,10 @@ for evt_idx in xrange(number_events):
                 halo_pileup_t0_dist.append(halo_pileup_t0_ / 1000.0)
                 halo_pileup_x1_dist.append(halo_pileup_x1_)
 
-        halo_pileup_number_particles_dist.append(number_halo_pileup)
+        halo_pileup_number_particles_dist.append(number_halo_pileup_particles)
 
     # get total number of particles
-    number_particles = number_beam + number_halo_pileup
+    number_particles = number_beam + number_halo_pileup_particles
     f.write(str(evt_idx) + ' ' + str(number_particles) + '\n')
 
     # get beam particle position
@@ -307,9 +315,8 @@ for evt_idx in xrange(number_events):
     #beam_pdg_code_ = beam_pdg_codes[np.random.randint(0, len(beam_pdg_codes))]
     beam_pdg_code_ = beam_particle.pdg_from_momentum(beam_momentum_ * 1000.0)
 
-    beam_momentum_x_, beam_momentum_y_, beam_momentum_z_ = hepevt.rotate(
-        0, 0, beam_momentum_,
-        beam_angle_xz_ * np.pi/180.0, beam_angle_yz_ * np.pi/180.0)
+    beam_momentum_x_, beam_momentum_y_, beam_momentum_z_ = hepevt.vector(
+        beam_momentum_, beam_angle_xz_ * np.pi/180.0, beam_angle_yz_ * np.pi/180.0)
 
     # compute beam particle mass and energy
     beam_mass_ = particle_mass[np.abs(beam_pdg_code_)] / 1000.0
