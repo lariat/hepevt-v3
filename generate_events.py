@@ -72,7 +72,8 @@ halo_pileup_pdg_codes = ast.literal_eval(config.get('config', 'halo_pileup_pdg_c
 
 #measured_tracking_efficiency = 0.65
 measured_tracking_efficiency = 0.56
-measured_halo_pileup_poisson_mean = 0.78714624
+#measured_halo_pileup_poisson_mean = 0.78714624
+measured_halo_pileup_poisson_mean = 0.87975809
 halo_pileup_poisson_mean = measured_halo_pileup_poisson_mean / measured_tracking_efficiency
 
 #/////////////////////////////////////////////////////////////
@@ -142,6 +143,9 @@ pdg_codes = [ int(pdg_code) for pdg_code in pdg_coefficients.keys() ]
 beam_x_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
 beam_y_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
 beam_z_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
+beam_x_proj_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
+beam_y_proj_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
+beam_z_proj_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
 beam_angle_xz_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
 beam_angle_yz_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
 beam_momentum_dist = OrderedDict([ (pdg, []) for pdg in pdg_codes ])
@@ -342,9 +346,15 @@ for evt_idx in xrange(number_events):
 
     f.write(beam_str + '\n')
 
+    beam_x_proj_, beam_y_proj_, beam_z_proj_ = hepevt.projection_at_z(
+        0, beam_x_, beam_y_, beam_z_, beam_angle_xz_ * np.pi / 180.0, beam_angle_yz_ * np.pi / 180.0)
+
     beam_x_dist[beam_pdg_code_].append(beam_x_)
     beam_y_dist[beam_pdg_code_].append(beam_y_)
     beam_z_dist[beam_pdg_code_].append(beam_z_)
+    beam_x_proj_dist[beam_pdg_code_].append(beam_x_proj_)
+    beam_y_proj_dist[beam_pdg_code_].append(beam_y_proj_)
+    beam_z_proj_dist[beam_pdg_code_].append(beam_z_proj_)
     beam_angle_xz_dist[beam_pdg_code_].append(beam_angle_xz_)
     beam_angle_yz_dist[beam_pdg_code_].append(beam_angle_yz_)
     beam_momentum_dist[beam_pdg_code_].append(beam_momentum_ * 1000.0)
@@ -359,6 +369,7 @@ for evt_idx in xrange(number_events):
 beam_plotter = hepevt.Plotter('beam', config)
 
 beam_plotter.plot_position(beam_x_dist, beam_y_dist, beam_z_dist)
+#beam_plotter.plot_position(beam_x_proj_dist, beam_y_proj_dist, beam_z_proj_dist)
 beam_plotter.plot_momentum(beam_momentum_dist,
                            beam_momentum_x_dist,
                            beam_momentum_y_dist,
