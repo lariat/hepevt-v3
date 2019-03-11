@@ -66,15 +66,15 @@ halo_pileup_momentum_high = secondary_beam_energy  # GeV
 
 halo_pileup_pdg_codes = ast.literal_eval(config.get('config', 'halo_pileup_pdg_codes'))
 
+halo_pileup_parameters_list = ast.literal_eval(config.get('config', 'halo_pileup_parameters'))
+halo_pileup_bin_counts_txt_file_list = ast.literal_eval(config.get('config', 'halo_pileup_bin_counts_txt'))
+halo_pileup_bin_edges_txt_file_list = ast.literal_eval(config.get('config', 'halo_pileup_bin_edges_txt'))
+
 #/////////////////////////////////////////////////////////////
 # additional config
 #/////////////////////////////////////////////////////////////
 
-#measured_tracking_efficiency = 0.65
-measured_tracking_efficiency = 0.56
-#measured_halo_pileup_poisson_mean = 0.78714624
-measured_halo_pileup_poisson_mean = 0.87975809
-halo_pileup_poisson_mean = measured_halo_pileup_poisson_mean / measured_tracking_efficiency
+tracking_efficiency = 0.56
 
 #/////////////////////////////////////////////////////////////
 # physical constants
@@ -175,6 +175,13 @@ halo_pileup_x1_dist = []
 beam_particle = hepevt.Particle(pdg_coefficients)
 
 #/////////////////////////////////////////////////////////////
+# halo pile-up particles
+#/////////////////////////////////////////////////////////////
+halo_pileup = hepevt.PileUp(
+    halo_pileup_bin_counts_txt_file_list, halo_pileup_bin_edges_txt_file_list,
+    halo_pileup_parameters_list, number_events, tracking_efficiency)
+
+#/////////////////////////////////////////////////////////////
 # write to output text file(s)
 #/////////////////////////////////////////////////////////////
 number_events_per_file = number_events / number_files
@@ -210,7 +217,7 @@ for evt_idx in xrange(number_events):
     if halo_pileup_on and halo_pileup_ttree is not None:
 
         # get number of halo pile-up particles
-        number_halo_pileup_particles = np.random.poisson(halo_pileup_poisson_mean)
+        number_halo_pileup_particles = halo_pileup.number_halo_pileup_particles[evt_idx]
 
         for pileup_idx in xrange(number_halo_pileup_particles):
 
