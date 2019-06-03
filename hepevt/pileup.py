@@ -2,7 +2,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 import scipy.interpolate as interpolate
-#import scipy.stats
+import scipy.stats
 #from scipy.stats import poisson as poisson
 
 # inverse transform sample
@@ -64,6 +64,61 @@ def get_number_halo_pileup_particles(bin_counts_txt_file, bin_edges_txt_file,
     #print np.random.poisson(mu)
 
     return np.random.poisson(mu)
+
+def angle(loc_x=-2.2, scale_x=1.2, loc_y=-0.4, scale_y=1.5, r=45):
+
+    def draw():
+
+        g = scipy.stats.cauchy.rvs(0, 1)
+        angle_ = np.random.rand() * 2 * np.pi
+        x_ = g * np.cos(angle_)
+        y_ = g * np.sin(angle_)
+
+        #loc_x = -2.2
+        #scale_x = 1.2
+
+        #loc_y = -0.4
+        #scale_y = 1.5
+
+        x_ *= scale_x
+        x_ -= 0.35 * np.abs(x_)
+        x_ += loc_x
+
+        y_ *= scale_y
+        y_ += loc_y
+
+        return x_, y_
+
+    #x, y = 360.0, 360.0
+    x, y = draw()
+
+    while (x**2 + y**2 > r**2):
+        x, y = draw()
+
+    return x, y
+
+    """
+    loc_x = -2.2
+    scale_x = 1.2
+
+    loc_y = -0.4
+    scale_y = 1.5
+
+    x *= scale_x
+    x -= 0.35 * np.abs(x)
+    #x -= 0.5 * np.exp(x*x) * np.sign(x)
+    #x -= 0.002 * x*x * np.sign(x)
+    x += loc_x
+
+    y *= scale_y
+    y += loc_y
+
+    flag = np.full(n, True)
+    #flag = (x - loc_x)**2 + (y - loc_y)**2 < (45)**2
+    flag = x**2 + y**2 < 40**2
+    """
+
+    return
 
 class PileUp:
     """ PileUp class. """

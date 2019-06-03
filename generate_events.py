@@ -160,14 +160,17 @@ if halo_pileup_on:
     number_halo_pileup_xyz_entries = halo_pileup_xyz_tree.numentries
     number_halo_pileup_angle_entries = halo_pileup_angle_tree.numentries
 
-    halo_pileup_xyz_arrays = halo_pileup_xyz_tree.arrays(['x', 'y', 'z'])
+    #halo_pileup_xyz_arrays = halo_pileup_xyz_tree.arrays(['x', 'y', 'z'])
+    halo_pileup_xyz_arrays = halo_pileup_xyz_tree.arrays(['x', 'y', 'z', 'angle_xz', 'angle_yz'])
     halo_pileup_x_array = halo_pileup_xyz_arrays['x']
     halo_pileup_y_array = halo_pileup_xyz_arrays['y']
     halo_pileup_z_array = halo_pileup_xyz_arrays['z']
+    halo_pileup_angle_xz_array = halo_pileup_xyz_arrays['angle_xz']
+    halo_pileup_angle_yz_array = halo_pileup_xyz_arrays['angle_yz']
 
-    halo_pileup_angle_arrays = halo_pileup_angle_tree.arrays(['angle_xz', 'angle_yz'])
-    halo_pileup_angle_xz_array = halo_pileup_angle_arrays['angle_xz']
-    halo_pileup_angle_yz_array = halo_pileup_angle_arrays['angle_yz']
+    #halo_pileup_angle_arrays = halo_pileup_angle_tree.arrays(['angle_xz', 'angle_yz'])
+    #halo_pileup_angle_xz_array = halo_pileup_angle_arrays['angle_xz']
+    #halo_pileup_angle_yz_array = halo_pileup_angle_arrays['angle_yz']
 
 #/////////////////////////////////////////////////////////////
 # for plotting
@@ -428,15 +431,75 @@ for evt_idx in xrange(number_events):
             #halo_pileup_t0_ = halo_pileup_time_
             #halo_pileup_x1_ = halo_pileup_x_
 
-            if halo_pileup_x_ < fiducial_anode_x or halo_pileup_x_ > fiducial_cathode_x:
+            #if halo_pileup_x_ < fiducial_anode_x or halo_pileup_x_ > fiducial_cathode_x:
+            if True:
                 halo_pileup_x0_ = np.random.uniform(fiducial_anode_x, fiducial_cathode_x)
                 #halo_pileup_t0_ = (halo_pileup_x1_ - halo_pileup_x0_) / drift_velocity
                 halo_pileup_time_ = (halo_pileup_x_ - halo_pileup_x0_) / drift_velocity
                 halo_pileup_adjust_time_ = True
 
             # get halo pile-up particle angle
-            halo_pileup_angle_xz_ = halo_pileup_angle_xz_array[halo_pileup_angle_idx]
-            halo_pileup_angle_yz_ = halo_pileup_angle_yz_array[halo_pileup_angle_idx]
+            #halo_pileup_angle_xz_ = halo_pileup_angle_xz_array[halo_pileup_xyz_idx]
+            #halo_pileup_angle_yz_ = halo_pileup_angle_yz_array[halo_pileup_xyz_idx]
+            #halo_pileup_angle_xz_ = -3
+            #halo_pileup_angle_yz_ = 0
+
+            #------------------------------------------------------------------
+            # angular magic
+            #------------------------------------------------------------------
+
+            #mu = -1.7144085793432629
+            #gamma_c = 1.2823824970395936
+            #gamma_b = 0.12574821939148592
+
+            #halo_pileup_angle_xz_ = (halo_pileup_angle_xz_ - mu) * (gamma_c - gamma_b) / gamma_c + mu
+            #halo_pileup_angle_yz_ = np.random.normal(-4.06138559e-01, 2.292416035600889)
+
+            #a = -4
+            #loc = -2 + 0.25
+            #scale = 1.5
+            #halo_pileup_angle_xz_ = scipy.stats.skewnorm.rvs(a, loc, scale)
+            #halo_pileup_angle_yz_ = np.random.normal(-4.06138559e-01, 1.24251617)
+
+            #halo_pileup_angle_xz_ = -3
+            #halo_pileup_angle_yz_ = -0.4
+
+            #halo_pileup_angle_xz_ = np.random.uniform(-20, 10)
+            #halo_pileup_angle_yz_ = np.random.uniform(-10, 10)
+
+            """
+            g = scipy.stats.cauchy.rvs(0, 1)
+            angle = np.random.rand() * 2 * np.pi
+            x = g * np.cos(angle)
+            y = g * np.sin(angle)
+
+            #loc_x = -2.2
+            loc_x = -3.0
+            #scale_x = 1.2
+            scale_x = 1.1
+
+            loc_y = -0.4
+            #scale_y = 1.5
+            scale_y = 1.3
+
+            x *= scale_x
+            x += loc_x
+
+            y *= scale_y
+            y += loc_y
+
+            halo_pileup_angle_xz_ = x
+            halo_pileup_angle_yz_ = y
+            """
+
+            #halo_pileup_angle_xz_, halo_pileup_angle_yz_ = hepevt.angle()
+            halo_pileup_angle_xz_, halo_pileup_angle_yz_ = hepevt.angle(
+                loc_x=-2.2, scale_x=1.2, loc_y=-0.4, scale_y=1.4, r=45)
+
+            #------------------------------------------------------------------
+
+            #halo_pileup_angle_xz_ = halo_pileup_angle_xz_array[halo_pileup_angle_idx]
+            #halo_pileup_angle_yz_ = halo_pileup_angle_yz_array[halo_pileup_angle_idx]
 
             # time offset
 
@@ -475,6 +538,13 @@ for evt_idx in xrange(number_events):
                 str(halo_pileup_time_)       + '\n')
                 #str(halo_pileup_t0_)         + '\n')
 
+            #halo_pileup_x_proj_, halo_pileup_y_proj_, halo_pileup_z_proj_ = hepevt.projection_at_z(
+            #    3, halo_pileup_x_proj_, halo_pileup_y_proj_, halo_pileup_z_proj_,
+            #    halo_pileup_angle_xz_ * np.pi / 180.0, halo_pileup_angle_yz_ * np.pi / 180.0)
+
+            #halo_pileup_x_dist.append(halo_pileup_x_proj_)
+            #halo_pileup_y_dist.append(halo_pileup_y_proj_)
+            #halo_pileup_z_dist.append(halo_pileup_z_proj_)
             halo_pileup_x_dist.append(halo_pileup_x_)
             halo_pileup_y_dist.append(halo_pileup_y_)
             halo_pileup_z_dist.append(halo_pileup_z_)

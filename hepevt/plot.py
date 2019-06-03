@@ -134,6 +134,8 @@ class Plotter:
         axarr[0, 0].set_ylabel('entries / %s cm' % str(x_bin_width))
         axarr[0, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[0, 0].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
         if x_stack:
             axarr[0, 0].legend(prop={'size': 8}, loc='upper left')
 
@@ -145,6 +147,8 @@ class Plotter:
         axarr[0, 1].set_ylabel('entries / %s cm' % str(y_bin_width))
         axarr[0, 1].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[0, 1].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
 
         axarr[1, 0].hist(z_dist, z_bins, range=(z_range[0], z_range[1]),
                          alpha=0.75, histtype='stepfilled',
@@ -154,6 +158,8 @@ class Plotter:
         axarr[1, 0].set_ylabel('entries / %s cm' % z_bin_width)
         axarr[1, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[1, 0].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
         #if z_stack:
         #    axarr[1, 0].legend(prop={'size': 8})
 
@@ -171,6 +177,8 @@ class Plotter:
         axarr[1, 1].set_ylim(y_range)
         axarr[1, 1].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[1, 1].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
         color_bar = fig.colorbar(im)
         color_bar.set_label(r'entries per %s cm $\times$ %s cm' % (x_bin_width, y_bin_width))
         #color_bar.set_label(r'entries / cm$^2$')
@@ -314,6 +322,8 @@ class Plotter:
         axarr[0, 0].set_ylabel('entries / %s MeV/c' % str(px_bin_width))
         axarr[0, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[0, 0].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
         if px_stack:
             axarr[0, 0].legend(prop={'size': 8})
 
@@ -325,6 +335,8 @@ class Plotter:
         axarr[0, 1].set_ylabel('entries / %s MeV/c' % str(py_bin_width))
         axarr[0, 1].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[0, 1].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
 
         axarr[0, 2].hist(pz_dist, pz_bins, range=(pz_range[0], pz_range[1]),
                          alpha=0.75, histtype='stepfilled',
@@ -334,6 +346,8 @@ class Plotter:
         axarr[0, 2].set_ylabel('entries / %s MeV/c' % pz_bin_width)
         axarr[0, 2].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 2].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[0, 2].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
 
         axarr[1, 0].hist(angle_xz_dist, angle_xz_bins,
                          range=(angle_xz_range[0], angle_xz_range[1]),
@@ -344,6 +358,9 @@ class Plotter:
         axarr[1, 0].set_ylabel('entries / %s$^\circ$' % angle_xz_bin_width)
         axarr[1, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[1, 0].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
+        axarr[1, 0].set_yscale('log', nonposy='clip')
 
         axarr[1, 1].hist(angle_yz_dist, angle_yz_bins,
                          range=(angle_yz_range[0], angle_yz_range[1]),
@@ -354,6 +371,9 @@ class Plotter:
         axarr[1, 1].set_ylabel('entries / %s$^\circ$' % angle_yz_bin_width)
         axarr[1, 1].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[1, 1].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
+        axarr[1, 1].set_yscale('log', nonposy='clip')
 
         axarr[1, 2].hist(p_dist, p_bins, range=(p_range[0], p_range[1]),
                          alpha=0.75, histtype='stepfilled',
@@ -363,6 +383,8 @@ class Plotter:
         axarr[1, 2].set_ylabel('entries / %s MeV/c' % str(p_bin_width))
         axarr[1, 2].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 2].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[1, 2].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
 
         plt.tight_layout()
 
@@ -403,6 +425,9 @@ class Plotter:
         #ax.xaxis.set_minor_locator(AutoMinorLocator())
         #ax.yaxis.set_minor_locator(AutoMinorLocator())
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+        #ax.grid(True, which='both', axis='both', color='k', linestyle=':',
+        #        linewidth=1, alpha=0.2)
 
         ax.set_xlim([particle_range[0], particle_range[1]])
 
@@ -502,6 +527,8 @@ class Plotter:
         axarr[0, 0].set_ylabel('entries / %s cm' % str(x0_bin_width))
         axarr[0, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[0, 0].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
 
         axarr[0, 1].hist(t0_dist, t0_bins, range=(t0_range[0], t0_range[1]),
                          alpha=0.75, histtype='stepfilled',
@@ -511,6 +538,8 @@ class Plotter:
         axarr[0, 1].set_ylabel('entries / %s $\mu$s' % str(t0_bin_width))
         axarr[0, 1].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[0, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[0, 1].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
 
         axarr[1, 0].hist(x1_dist, x1_bins, range=(x1_range[0], x1_range[1]),
                          alpha=0.75, histtype='stepfilled',
@@ -520,6 +549,8 @@ class Plotter:
         axarr[1, 0].set_ylabel('entries / %s cm' % str(x1_bin_width))
         axarr[1, 0].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[1, 0].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
 
         hist, xbins, ybins = np.histogram2d(np.hstack(x0_dist), np.hstack(y0_dist),
                                             bins=[ x0_bins, y0_bins ],
@@ -535,6 +566,8 @@ class Plotter:
         axarr[1, 1].set_ylim(y0_range)
         axarr[1, 1].xaxis.set_minor_locator(AutoMinorLocator())
         axarr[1, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        #axarr[1, 1].grid(True, which='both', axis='both', color='k',
+        #                 linestyle=':', linewidth=1, alpha=0.2)
         color_bar = fig.colorbar(im)
         color_bar.set_label(r'entries per %s cm $\times$ %s cm' % (x0_bin_width, y0_bin_width))
 

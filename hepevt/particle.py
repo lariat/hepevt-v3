@@ -21,7 +21,10 @@ class Particle:
             #print polynomial(momentum)
 
         probability = np.array(probability)
+        probability[probability < 0] = 0
         probability /= sum(probability)
+
+        #print probability
 
         return np.random.choice(pdg, p=probability)
 
@@ -32,10 +35,17 @@ class Particle:
 if __name__ == '__main__':
 
     # -100 A
+    #coefficients = {
+    #    -211 : [ -9.00471e-07,  0.00156373 , 0.135303 ],
+    #      13 : [  1.59299e-07, -0.000270598, 0.234394 ],
+    #      11 : [  2.84641e-07, -0.000621823, 0.385299 ],
+    #    }
+
+    # new -100A coefficients from Greg; 2019-02-12
     coefficients = {
-        -211 : [ -9.00471e-07,  0.00156373 , 0.135303 ],
-          13 : [  1.59299e-07, -0.000270598, 0.234394 ],
-          11 : [  2.84641e-07, -0.000621823, 0.385299 ],
+        -211 : [ -8.84e-08,  0.000353 , 0.671 ],
+          13 : [ -1.29e-07,  0.000163, -0.013 ],
+          11 : [  1.37e-07, -0.000408,  0.302 ],
         }
 
     ## +60 A
@@ -47,7 +57,8 @@ if __name__ == '__main__':
 
     particle = Particle(coefficients)
 
-    for momentum in np.linspace(200, 1000-50, 16):
+    #for momentum in np.linspace(200, 1000-50, 16):
+    for momentum in np.linspace(0, 1500-50, 30):
 
         particle_pdg_list = []
 
@@ -59,5 +70,5 @@ if __name__ == '__main__':
 
         counts_ = np.array(counts, dtype=np.float) / np.sum(counts)
 
-        print str(momentum) + ' MeV/c', dict(zip(unique, counts_))
+        print str(momentum) + ' MeV/c', dict(zip(unique, counts_)), np.sum(counts_)
 
