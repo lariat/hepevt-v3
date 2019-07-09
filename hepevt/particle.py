@@ -19,6 +19,10 @@ class Particle:
             pdg.append(pdg_code)
             probability.append(polynomial(momentum))
             #print polynomial(momentum)
+            #if np.abs(pdg_code) == 11:
+            #    probability[-1] += 0.2
+            #if np.abs(pdg_code) == 13:
+            #    probability[-1] += 0.3
 
         probability = np.array(probability)
         probability[probability < 0] = 0

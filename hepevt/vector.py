@@ -18,6 +18,16 @@ def projection_at_z(z, x0, y0, z0, angle_xz, angle_yz):
 
     return x, y, z
 
+def projection_at_x(x, x0, y0, z0, angle_xz, angle_yz):
+
+    x1, y1, z1 = vector(1, angle_xz, angle_yz)
+
+    slope = (x - x0) / x1
+    y = y0 + slope * y1
+    z = z0 + slope * z1
+
+    return x, y, z
+
 def rotate_xz(x, y, z, angle_xz):
 
     x_ = x * np.cos(angle_xz) + z * np.sin(angle_xz)
