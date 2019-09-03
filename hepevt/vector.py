@@ -28,6 +28,7 @@ def projection_at_x(x, x0, y0, z0, angle_xz, angle_yz):
 
     return x, y, z
 
+# this function does not work
 def rotate_xz(x, y, z, angle_xz):
 
     x_ = x * np.cos(angle_xz) + z * np.sin(angle_xz)
@@ -36,6 +37,7 @@ def rotate_xz(x, y, z, angle_xz):
 
     return np.array([ x_, y_, z_ ])
 
+# this function does not work
 def rotate_yz(x, y, z, angle_yz):
 
     x_ = x
@@ -44,6 +46,7 @@ def rotate_yz(x, y, z, angle_yz):
 
     return np.array([ x_, y_, z_ ])
 
+# this function does not work
 def rotate(x, y, z, angle_xz, angle_yz):
 
     x_ = x * np.cos(angle_xz) + z * np.sin(angle_xz)

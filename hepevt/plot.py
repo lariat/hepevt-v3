@@ -162,6 +162,8 @@ class Plotter:
         #                 linestyle=':', linewidth=1, alpha=0.2)
         #if z_stack:
         #    axarr[1, 0].legend(prop={'size': 8})
+        axarr[1, 0].set_xlim(-20, 160)
+        #axarr[1, 0].set_ylim(0, 5000)
 
         hist, xbins, ybins = np.histogram2d(np.hstack(x_dist), np.hstack(y_dist),
                                             bins=[ x_bins, y_bins ],

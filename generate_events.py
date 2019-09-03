@@ -51,6 +51,7 @@ beam_file_path = ast.literal_eval(config.get('config', 'beam_file'))
 halo_pileup_file_path = ast.literal_eval(config.get('config', 'halo_pileup_file'))
 
 halo_pileup_on = config.getboolean('config', 'halo_pileup_on')
+halo_pileup_side_entering_on = config.getboolean('config', 'halo_pileup_side_entering_on')
 
 number_events = config.getint('config', 'events')
 number_files = config.getint('config', 'number_files')
@@ -68,16 +69,6 @@ halo_pileup_momentum_low = secondary_beam_energy * 0.57  # GeV
 halo_pileup_momentum_high = secondary_beam_energy  # GeV
 
 halo_pileup_pdg_codes = ast.literal_eval(config.get('config', 'halo_pileup_pdg_codes'))
-
-halo_pileup_parameters_list = ast.literal_eval(config.get('config', 'halo_pileup_parameters'))
-halo_pileup_bin_counts_txt_file_list = ast.literal_eval(config.get('config', 'halo_pileup_bin_counts_txt'))
-halo_pileup_bin_edges_txt_file_list = ast.literal_eval(config.get('config', 'halo_pileup_bin_edges_txt'))
-
-#/////////////////////////////////////////////////////////////
-# additional config
-#/////////////////////////////////////////////////////////////
-
-tracking_efficiency = 0.56
 
 #/////////////////////////////////////////////////////////////
 # physical constants
@@ -109,15 +100,16 @@ tpc_back_z    =  90.0  # cm
 fiducial_padding_x_low  = 5.0  # cm
 fiducial_padding_x_high = 5.0  # cm
 
-fiducial_anode_x   = tpc_anode_x   + 4.0  # cm
-fiducial_cathode_x = tpc_cathode_x - 4.0  # cm
+fiducial_anode_x   = tpc_anode_x   + 5.0  # cm
+fiducial_cathode_x = tpc_cathode_x - 5.0  # cm
 
 # drift velocity
 drift_window_ticks = 2528  # ticks
 time_per_tick      = 128   # ns
-drift_window_time  = drift_window_ticks * time_per_tick
+drift_window_time  = drift_window_ticks * time_per_tick  # ns
 #drift_velocity = (tpc_x_max - tpc_x_min) / drift_window_time
-drift_velocity = (tpc_cathode_x - tpc_anode_x) / drift_window_time
+drift_velocity = (tpc_cathode_x - tpc_anode_x) / drift_window_time  # cm / ns
+drift_velocity = 0.146964e-3  # cm / ns
 
 #/////////////////////////////////////////////////////////////
 # uproot
@@ -138,11 +130,9 @@ beam_angle_yz_array = beam_arrays['angle_yz']
 beam_momentum_array = beam_arrays['momentum']
 
 halo_pileup_file = None
-halo_pileup_xyz_tree = None
-halo_pileup_angle_tree = None
+halo_pileup_tree = None
 
-number_halo_pileup_xyz_entries = 0
-number_halo_pileup_angle_entries = 0
+number_halo_pileup_entries = 0
 
 halo_pileup_arrays = None
 halo_pileup_x_array = None
@@ -150,27 +140,40 @@ halo_pileup_y_array = None
 halo_pileup_z_array = None
 halo_pileup_angle_xz_array = None
 halo_pileup_angle_yz_array = None
+halo_pileup_front_entering_array = None
+halo_pileup_side_entering_array = None
 
 if halo_pileup_on:
+
     halo_pileup_file = uproot.open(halo_pileup_file_path)
+    halo_pileup_tree = halo_pileup_file['data_halo_pileup']
 
-    halo_pileup_xyz_tree = halo_pileup_file['halo_pileup_xyz']
-    halo_pileup_angle_tree = halo_pileup_file['halo_pileup_angle']
+    number_halo_pileup_entries = halo_pileup_tree.numentries
 
-    number_halo_pileup_xyz_entries = halo_pileup_xyz_tree.numentries
-    number_halo_pileup_angle_entries = halo_pileup_angle_tree.numentries
+    halo_pileup_arrays = halo_pileup_tree.arrays(
+        [ 'upstream_x', 'upstream_y', 'upstream_z', 'angle_xz', 'angle_yz',
+         'front_entering', 'side_entering' ])
 
-    #halo_pileup_xyz_arrays = halo_pileup_xyz_tree.arrays(['x', 'y', 'z'])
-    halo_pileup_xyz_arrays = halo_pileup_xyz_tree.arrays(['x', 'y', 'z', 'angle_xz', 'angle_yz'])
-    halo_pileup_x_array = halo_pileup_xyz_arrays['x']
-    halo_pileup_y_array = halo_pileup_xyz_arrays['y']
-    halo_pileup_z_array = halo_pileup_xyz_arrays['z']
-    halo_pileup_angle_xz_array = halo_pileup_xyz_arrays['angle_xz']
-    halo_pileup_angle_yz_array = halo_pileup_xyz_arrays['angle_yz']
+    halo_pileup_x_array = halo_pileup_arrays['upstream_x']
+    halo_pileup_y_array = halo_pileup_arrays['upstream_y']
+    halo_pileup_z_array = halo_pileup_arrays['upstream_z']
+    halo_pileup_angle_xz_array = halo_pileup_arrays['angle_xz']
+    halo_pileup_angle_yz_array = halo_pileup_arrays['angle_yz']
+    halo_pileup_front_entering_array = halo_pileup_arrays['front_entering']
+    halo_pileup_side_entering_array = halo_pileup_arrays['side_entering']
 
-    #halo_pileup_angle_arrays = halo_pileup_angle_tree.arrays(['angle_xz', 'angle_yz'])
-    #halo_pileup_angle_xz_array = halo_pileup_angle_arrays['angle_xz']
-    #halo_pileup_angle_yz_array = halo_pileup_angle_arrays['angle_yz']
+    if not halo_pileup_side_entering_on:
+
+        flags = halo_pileup_side_entering_array == 0
+        number_halo_pileup_entries = np.sum(flags)
+
+        halo_pileup_x_array = halo_pileup_arrays['upstream_x'][flags]
+        halo_pileup_y_array = halo_pileup_arrays['upstream_y'][flags]
+        halo_pileup_z_array = halo_pileup_arrays['upstream_z'][flags]
+        halo_pileup_angle_xz_array = halo_pileup_arrays['angle_xz'][flags]
+        halo_pileup_angle_yz_array = halo_pileup_arrays['angle_yz'][flags]
+        halo_pileup_front_entering_array = halo_pileup_arrays['front_entering'][flags]
+        halo_pileup_side_entering_array = halo_pileup_arrays['side_entering'][flags]
 
 #/////////////////////////////////////////////////////////////
 # for plotting
@@ -215,10 +218,6 @@ beam_particle = hepevt.Particle(pdg_coefficients)
 #/////////////////////////////////////////////////////////////
 # halo pile-up particles
 #/////////////////////////////////////////////////////////////
-#halo_pileup = hepevt.PileUp(
-#    halo_pileup_bin_counts_txt_file_list, halo_pileup_bin_edges_txt_file_list,
-#    halo_pileup_parameters_list, number_events, tracking_efficiency)
-
 pk = np.array([
     0.27783235,
     0.27645015,
@@ -349,7 +348,7 @@ pk = np.array([
     2.12392587e-07, 4.18689850e-06, 9.27545746e-08, 1.72701036e-04,
     ])
 
-# 2019-05-06
+# 2019-05-06; -100A pimue
 
 pk = np.array([
     2.86577089e-01, 2.41575447e-01, 1.71279961e-01, 1.09202285e-01,
@@ -364,6 +363,117 @@ pk = np.array([
     8.28749020e-08, 7.29748102e-05, 1.58749418e-04, 2.87861732e-05,
     2.86782715e-05, 3.23893478e-05, 1.70423923e-05, 8.22648812e-05,
     1.97551528e-05, 7.34051234e-06, 1.67387968e-05, 1.50265378e-05,
+    ])
+
+# 2019-06-24; +100A proton
+
+pk = np.array([
+    4.01025220e-01, 2.63688626e-01, 1.51533424e-01, 8.00866727e-02,
+    4.32796988e-02, 2.56867787e-02, 1.00265462e-02, 1.13623950e-02,
+    4.05980740e-08, 4.01538817e-03, 5.62905133e-03, 3.44579962e-04,
+    2.53798831e-04, 1.26553189e-04, 1.57437981e-04, 1.82312695e-04,
+    6.77663626e-05, 4.75468600e-04, 1.46920149e-06, 2.10849386e-04,
+    2.70553264e-04, 1.26111400e-04, 4.27320249e-04, 3.86369946e-04,
+    2.40700048e-04, 6.73793997e-05, 9.53799500e-08, 6.68215698e-07,
+    3.36556546e-05, 2.20074760e-05, 1.66683624e-05, 1.31864733e-05,
+    1.08041957e-05, 9.10870121e-06, 7.85985311e-06, 6.91226857e-06,
+    6.17460753e-06, 5.58751361e-06, 5.11122533e-06, 4.71837397e-06,
+    4.38965873e-06, 4.11117069e-06, 3.87269085e-06, 3.66658003e-06,
+    3.48703818e-06, 3.32959959e-06, 3.19078237e-06, 3.06784073e-06,
+    ])
+
+# 2019-08-08; +100A proton, includes side-entering pile-up
+
+pk = np.array([
+    3.38917163e-01, 2.40248541e-01, 1.51872983e-01, 8.98058674e-02,
+    5.21999332e-02, 4.66090421e-02, 1.10192037e-02, 2.31868792e-02,
+    4.95690052e-07, 2.49627193e-02, 4.74866402e-05, 4.88178435e-05,
+    5.39194181e-05, 8.12510555e-08, 2.68591234e-12, 1.27572264e-02,
+    2.27671345e-03, 1.22049360e-04, 8.62782255e-05, 1.08385043e-05,
+    1.53724871e-06, 9.13453360e-08, 1.15995359e-05, 8.03038987e-06,
+    7.46981534e-06, 1.18276170e-05, 1.56022472e-06, 1.39495323e-05,
+    5.24985108e-06, 2.40902817e-05, 3.00117260e-05, 5.19079165e-08,
+    4.48191231e-06, 5.43996287e-05, 9.27059280e-05, 9.14377069e-05,
+    6.12314274e-05, 1.62188751e-04, 6.74168538e-05, 8.30936531e-05,
+    6.34621911e-05, 3.48418414e-05, 3.95540077e-04, 3.66949924e-04,
+    3.02295409e-04, 2.25197577e-04, 3.51455594e-04, 1.80825173e-04,
+    #
+    3.46931271e-04, 1.83148646e-04, 1.54016984e-04, 2.14684533e-04,
+    3.80683923e-04, 1.01497061e-07, 4.20783181e-04, 8.35455375e-06,
+    1.05848380e-05, 2.16936443e-04, 1.58770321e-04, 5.20257103e-06,
+    6.46280286e-05, 5.87215506e-05, 1.27823935e-05, 3.29285049e-06,
+    3.81016601e-06, 2.01031926e-06, 5.10139468e-07, 2.10108507e-07,
+    3.48565605e-07, 1.25543835e-07, 1.52197730e-07, 1.70156395e-08,
+    9.43200084e-08, 4.83410240e-09, 8.56855173e-08, 5.85163268e-08,
+    1.23665695e-08, 2.97108073e-08, 4.06190080e-09, 2.37356903e-08,
+    2.27423065e-08, 2.00402383e-09, 1.08827290e-08, 2.14466335e-09,
+    3.32774036e-09, 3.17425162e-09, 4.55950396e-09, 4.19767801e-09,
+    2.42151892e-09, 2.41389667e-09, 3.13720087e-09, 4.60715691e-10,
+    2.46167441e-09, 1.96331212e-09, 1.06837951e-09, 1.12062659e-09,
+    4.63121773e-10, 2.12734509e-10, 1.83601212e-10, 6.51590058e-04,
+    ])
+
+
+# 2019-08-18; +100A proton, includes side-entering pile-up
+
+pk = np.array([
+    3.83831243e-01, 2.58661152e-01, 1.54225045e-01, 8.27985523e-02,
+    4.74123510e-02, 3.28948981e-02, 5.30816356e-03, 2.10918311e-02,
+    2.77446306e-08, 6.17573922e-07, 3.43808947e-05, 1.02859277e-02,
+    1.32770352e-03, 7.07929238e-08, 3.59742815e-07, 2.54084035e-07,
+    1.47249572e-07, 5.58702261e-08, 2.21798779e-08, 2.75955653e-08,
+    5.16341208e-08, 5.12147007e-08, 3.87113937e-07, 3.63684870e-09,
+    7.82092516e-06, 4.52039739e-05, 5.67874030e-05, 1.49986118e-04,
+    7.71459296e-05, 2.85232009e-04, 2.69862573e-08, 7.41248269e-04,
+    5.42241743e-04, 1.32631248e-04, 1.05261689e-17, 1.71852474e-09,
+    1.33869775e-08, 1.21062070e-06, 4.75466926e-09, 6.81317182e-09,
+    6.47508022e-07, 5.47228133e-07, 3.80978693e-07, 1.57199055e-08,
+    3.47456168e-07, 2.92784271e-07, 2.46088828e-07, 2.06831953e-07,
+    #
+    # 1.74117656e-07, 1.52114008e-07, 1.31657229e-07, 1.12046976e-07,
+    # 9.37969775e-08, 7.77005580e-08, 6.70469722e-08, 5.81543000e-08,
+    # 5.07090100e-08, 4.44559405e-08, 3.91875055e-08, 3.47347151e-08,
+    # 3.09598178e-08, 2.77503260e-08, 2.50141936e-08, 2.26759336e-08,
+    # 2.06735000e-08, 1.89557827e-08, 1.74805949e-08, 1.62130559e-08,
+    # 1.57375324e-08, 1.59331310e-08, 1.57656691e-08, 1.52697927e-08,
+    # 1.44754025e-08, 1.34084110e-08, 1.20914711e-08, 1.09427482e-08,
+    # 1.06982337e-08, 1.05225804e-08, 1.04132623e-08, 1.03691128e-08,
+    # 1.03903327e-08, 1.04785512e-08, 1.06369477e-08, 1.08704418e-08,
+    # 1.11859648e-08, 1.33334819e-08, 1.59156253e-08, 1.82939564e-08,
+    # 2.03367455e-08, 2.18625518e-08, 2.26188101e-08, 2.22511560e-08,
+    # 2.02622004e-08, 5.36455252e-08, 1.23921294e-08, 2.89342765e-08,
+    # 2.64378783e-08, 5.04919789e-16, 2.33428958e-08, 1.95535010e-04,
+    ])
+
+# 2019-08-18; +100A proton, includes side-entering pile-up
+
+pk = np.array([
+    3.51578702e-01, 2.46128482e-01, 1.52548315e-01, 9.10370912e-02,
+    5.70283851e-02, 3.90093690e-02, 1.43957274e-03, 4.14995485e-02,
+    2.20166303e-10, 1.89646617e-09, 8.08362074e-09, 1.15319514e-13,
+    7.95698667e-03, 7.82031095e-03, 4.00440541e-05, 1.36850984e-05,
+    2.00139972e-08, 5.41339000e-05, 1.62568592e-05, 6.32330408e-08,
+    8.13931754e-08, 2.21679951e-03, 7.64130274e-07, 1.43283914e-06,
+    3.04689816e-06, 2.22055504e-06, 3.25106416e-06, 8.64940989e-07,
+    1.89183808e-07, 8.36890212e-07, 2.54635255e-08, 6.03597290e-09,
+    1.80948714e-07, 1.05547052e-08, 4.29345276e-07, 2.98537731e-07,
+    3.42375377e-10, 6.98531259e-07, 2.91486780e-07, 3.64414234e-07,
+    8.22101289e-07, 2.88815172e-06, 5.10044040e-06, 2.73796352e-06,
+    9.45327569e-06, 1.17507523e-05, 9.90715578e-06, 4.04555166e-05,
+    #
+    # 6.41154985e-05, 1.02424845e-04, 6.37238673e-05, 5.49113697e-05,
+    # 1.36418432e-04, 3.59682564e-04, 2.33621747e-05, 5.64695123e-04,
+    # 3.23753031e-07, 5.24723662e-06, 1.51350044e-06, 2.86270666e-20,
+    # 2.76395147e-08, 3.20603944e-08, 4.14968564e-08, 3.91659387e-08,
+    # 1.16486007e-08, 5.18332387e-09, 3.77714156e-09, 2.61276145e-09,
+    # 5.24431462e-10, 7.80513988e-11, 1.91687979e-11, 1.95261213e-20,
+    # 3.13013239e-11, 2.54811894e-10, 3.66749750e-10, 4.54386424e-10,
+    # 8.01161063e-10, 9.73790438e-11, 2.64435665e-10, 2.03989929e-10,
+    # 9.71166218e-10, 1.40808341e-10, 1.08231762e-10, 4.83349761e-10,
+    # 3.78084864e-10, 6.05076692e-10, 1.05447944e-10, 4.65477188e-10,
+    # 4.64071196e-10, 1.06889693e-10, 4.87185793e-10, 1.12595827e-10,
+    # 1.84054401e-10, 1.13216054e-09, 1.37249498e-10, 5.99240835e-10,
+    # 5.27187758e-10, 5.61858695e-10, 9.53989846e-10, 1.36223634e-04,
     ])
 
 pk = pk / np.sum(pk)
@@ -404,7 +514,7 @@ for evt_idx in xrange(number_events):
     beam_str = ''
     halo_pileup_str = ''
 
-    if halo_pileup_on and halo_pileup_xyz_tree is not None and halo_pileup_angle_tree is not None:
+    if halo_pileup_on and halo_pileup_tree is not None:
 
         # get number of halo pile-up particles
         number_halo_pileup_particles = number_halo_pileup[evt_idx]
@@ -412,16 +522,19 @@ for evt_idx in xrange(number_events):
         for pileup_idx in xrange(number_halo_pileup_particles):
 
             # draw random numbers for halo pile-up entry
-            halo_pileup_xyz_idx = np.random.randint(0, number_halo_pileup_xyz_entries)
-            halo_pileup_angle_idx = np.random.randint(0, number_halo_pileup_angle_entries)
+            halo_pileup_idx = np.random.randint(0, number_halo_pileup_entries)
+
+            # front- or side-entering halo pile-up particle
+            halo_pileup_front_entering = halo_pileup_front_entering_array[halo_pileup_idx]
+            halo_pileup_side_entering = halo_pileup_side_entering_array[halo_pileup_idx]
 
             # get PDG code of halo_pileup particle
             halo_pileup_pdg_code_ = halo_pileup_pdg_codes[np.random.randint(0, len(halo_pileup_pdg_codes))]
 
             # get halo pile-up particle position
-            halo_pileup_x_ = halo_pileup_x_array[halo_pileup_xyz_idx]
-            halo_pileup_y_ = halo_pileup_y_array[halo_pileup_xyz_idx]
-            halo_pileup_z_ = halo_pileup_z_array[halo_pileup_xyz_idx]
+            halo_pileup_x_ = halo_pileup_x_array[halo_pileup_idx]
+            halo_pileup_y_ = halo_pileup_y_array[halo_pileup_idx]
+            halo_pileup_z_ = halo_pileup_z_array[halo_pileup_idx]
 
             # set halo pile-up particle time
             halo_pileup_time_ = 0.0
@@ -438,11 +551,13 @@ for evt_idx in xrange(number_events):
                 halo_pileup_time_ = (halo_pileup_x_ - halo_pileup_x0_) / drift_velocity
                 halo_pileup_adjust_time_ = True
 
-            # get halo pile-up particle angle
-            #halo_pileup_angle_xz_ = halo_pileup_angle_xz_array[halo_pileup_xyz_idx]
-            #halo_pileup_angle_yz_ = halo_pileup_angle_yz_array[halo_pileup_xyz_idx]
-            #halo_pileup_angle_xz_ = -3
-            #halo_pileup_angle_yz_ = 0
+            if halo_pileup_side_entering:
+                halo_pileup_x0_ = tpc_cathode_x
+                halo_pileup_x_ = np.random.uniform(-2, 56)
+                #halo_pileup_z_ = np.random.uniform(5, 85)
+                #halo_pileup_z_ = 100
+                halo_pileup_time_ = (halo_pileup_x_ - tpc_cathode_x) / drift_velocity
+                halo_pileup_adjust_time_ = True
 
             #------------------------------------------------------------------
             # angular magic
@@ -498,15 +613,23 @@ for evt_idx in xrange(number_events):
 
             #------------------------------------------------------------------
 
-            #halo_pileup_angle_xz_ = halo_pileup_angle_xz_array[halo_pileup_angle_idx]
-            #halo_pileup_angle_yz_ = halo_pileup_angle_yz_array[halo_pileup_angle_idx]
-
             # time offset
 
             # start position projection
             halo_pileup_x_proj_, halo_pileup_y_proj_, halo_pileup_z_proj_ = hepevt.projection_at_z(
-                -10, halo_pileup_x0_, halo_pileup_y_, halo_pileup_z_,
+                -40, halo_pileup_x0_, halo_pileup_y_, halo_pileup_z_,
                 halo_pileup_angle_xz_ * np.pi / 180.0, halo_pileup_angle_yz_ * np.pi / 180.0)
+
+            if halo_pileup_side_entering:
+
+                halo_pileup_x_proj_ = tpc_cathode_x
+                #halo_pileup_x_proj_ = halo_pileup_x0_
+                halo_pileup_y_proj_ = halo_pileup_y_
+                halo_pileup_z_proj_ = halo_pileup_z_ 
+
+                halo_pileup_x_proj_, halo_pileup_y_proj_, halo_pileup_z_proj_ = hepevt.projection_at_z(
+                    -20, tpc_cathode_x, halo_pileup_y_, halo_pileup_z_,
+                    halo_pileup_angle_xz_ * np.pi / 180.0, halo_pileup_angle_yz_ * np.pi / 180.0)
 
             # get halo_pileup particle momentum
             halo_pileup_momentum_ = np.random.uniform(halo_pileup_momentum_low, halo_pileup_momentum_high)
@@ -542,20 +665,22 @@ for evt_idx in xrange(number_events):
             #    3, halo_pileup_x_proj_, halo_pileup_y_proj_, halo_pileup_z_proj_,
             #    halo_pileup_angle_xz_ * np.pi / 180.0, halo_pileup_angle_yz_ * np.pi / 180.0)
 
-            #halo_pileup_x_dist.append(halo_pileup_x_proj_)
-            #halo_pileup_y_dist.append(halo_pileup_y_proj_)
-            #halo_pileup_z_dist.append(halo_pileup_z_proj_)
-            halo_pileup_x_dist.append(halo_pileup_x_)
-            halo_pileup_y_dist.append(halo_pileup_y_)
-            halo_pileup_z_dist.append(halo_pileup_z_)
-            halo_pileup_angle_xz_dist.append(halo_pileup_angle_xz_)
-            halo_pileup_angle_yz_dist.append(halo_pileup_angle_yz_)
-            halo_pileup_momentum_dist.append(halo_pileup_momentum_ * 1000.0)
-            halo_pileup_momentum_x_dist.append(halo_pileup_momentum_x_ * 1000.0)
-            halo_pileup_momentum_y_dist.append(halo_pileup_momentum_y_ * 1000.0)
-            halo_pileup_momentum_z_dist.append(halo_pileup_momentum_z_ * 1000.0)
+            if halo_pileup_adjust_time_ and halo_pileup_side_entering:
+                #halo_pileup_x_dist.append(halo_pileup_x_proj_)
+                #halo_pileup_y_dist.append(halo_pileup_y_proj_)
+                #halo_pileup_z_dist.append(halo_pileup_z_proj_)
+                halo_pileup_x_dist.append(halo_pileup_x_)
+                halo_pileup_y_dist.append(halo_pileup_y_)
+                halo_pileup_z_dist.append(halo_pileup_z_)
+                halo_pileup_angle_xz_dist.append(halo_pileup_angle_xz_)
+                halo_pileup_angle_yz_dist.append(halo_pileup_angle_yz_)
+                halo_pileup_momentum_dist.append(halo_pileup_momentum_ * 1000.0)
+                halo_pileup_momentum_x_dist.append(halo_pileup_momentum_x_ * 1000.0)
+                halo_pileup_momentum_y_dist.append(halo_pileup_momentum_y_ * 1000.0)
+                halo_pileup_momentum_z_dist.append(halo_pileup_momentum_z_ * 1000.0)
 
-            if halo_pileup_adjust_time_:
+            #if halo_pileup_adjust_time_:
+            if halo_pileup_adjust_time_ and halo_pileup_side_entering:
                 halo_pileup_x0_dist.append(halo_pileup_x0_)
                 halo_pileup_y0_dist.append(halo_pileup_y_)
                 halo_pileup_t0_dist.append(halo_pileup_time_ / 1000.0)
@@ -629,7 +754,7 @@ for evt_idx in xrange(number_events):
     beam_momentum_z_dist[beam_pdg_code_].append(beam_momentum_z_ * 1000.0)
 
     # if halo pile-up TTree objects are present
-    if halo_pileup_on and halo_pileup_xyz_tree is not None and halo_pileup_angle_tree is not None and not not halo_pileup_str:
+    if halo_pileup_on and halo_pileup_tree is not None and not not halo_pileup_str:
         f.write(halo_pileup_str)
 
 beam_plotter = hepevt.Plotter('beam', config)
