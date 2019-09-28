@@ -5,6 +5,7 @@ from collections import OrderedDict
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator, MaxNLocator
+from matplotlib.colors import LogNorm
 
 class Plotter:
 
@@ -575,4 +576,125 @@ class Plotter:
 
         plt.tight_layout()
         plt.savefig(self.plot_output_dir + self.prefix + '_time_offset.pdf')
+
+def plot1d(x, bins, bin_range, xlabel=None, ylabel=None, xlim=None, ylim=None,
+           title=None, label=None, savefig=None, scale=False):
+
+    fig = plt.figure(figsize=(7, 5))
+    ax = fig.add_subplot(1, 1, 1)
+
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+    counts, _, _ = ax.hist(x, bins=bins, range=bin_range, histtype='stepfilled')
+
+    if title:
+        ax.set_title(title)
+
+    ax.set_xlabel(xlabel, position=(1., 0.), ha='right', fontsize=18)
+    #ax.set_xlabel(xlabel, fontsize=18)
+    #ax.set_xlabel(xlabel, position=(0., 1.), ha='left', fontsize=18)
+    ax.set_ylabel(ylabel, position=(0., 1.), va='top', ha='right', fontsize=18)
+
+    #ax.xaxis.set_label_coords(0.825, -0.125)
+    #ax.yaxis.set_label_coords(-0.21, 1.)
+
+    #ax.xaxis.set_label_coords(0.515, -0.125)
+    ax.yaxis.set_label_coords(-0.15, 1.)
+
+    if label:
+        props = dict(boxstyle='round', facecolor='w', alpha=0.25)
+
+        ax.text(0.9, 0.925, label,
+                horizontalalignment='center',
+                verticalalignment='center',
+                transform=ax.transAxes, fontsize=16, bbox=props)
+
+    ax.grid(True, which='both', axis='both', color='k', linestyle=':',
+            linewidth=1, alpha=0.2)
+
+    #fig.subplots_adjust(top=0.935)
+    #fig.subplots_adjust(left=0.180)
+
+    if xlim is not None:
+        ax.set_xlim(xlim)
+
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+    if savefig:
+        fig.savefig(savefig)
+    else:
+        plt.show()
+
+    plt.clf()
+    plt.cla()
+    plt.close()
+
+    return
+
+def plot2d(x, y, x_bins, x_range, y_bins, y_range, xlabel=None, ylabel=None,
+           zlabel=None, logz=False, xlim=None, ylim=None, title=None,
+           label=None, savefig=None, scale=False):
+
+    fig = plt.figure(figsize=(7, 5))
+    ax = fig.add_subplot(1, 1, 1)
+
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+    counts, xedges, yedges, im = None, None, None, None
+
+    if logz:
+        counts, xedges, yedges, im = ax.hist2d(x, y, bins=(x_bins, y_bins), range=(x_range, y_range), norm=LogNorm())
+    else:
+        counts, xedges, yedges, im = ax.hist2d(x, y, bins=(x_bins, y_bins), range=(x_range, y_range))
+
+    if title:
+        ax.set_title(title)
+
+    ax.set_xlabel(xlabel, position=(1., 0.), ha='right', fontsize=18)
+    #ax.set_xlabel(xlabel, fontsize=18)
+    #ax.set_xlabel(xlabel, position=(0., 1.), ha='left', fontsize=18)
+    ax.set_ylabel(ylabel, position=(0., 1.), va='top', ha='right', fontsize=18)
+
+    #ax.xaxis.set_label_coords(0.825, -0.125)
+    #ax.yaxis.set_label_coords(-0.21, 1.)
+
+    #ax.xaxis.set_label_coords(0.515, -0.125)
+    ax.yaxis.set_label_coords(-0.15, 1.)
+
+    cbar = fig.colorbar(im, ax=ax, label=zlabel)
+    cbar.set_label(zlabel, fontsize=14)
+
+    if label:
+        props = dict(boxstyle='round', facecolor='w', alpha=0.25)
+
+        ax.text(0.9, 0.925, label,
+                horizontalalignment='center',
+                verticalalignment='center',
+                transform=ax.transAxes, fontsize=16, bbox=props)
+
+    ax.grid(True, which='both', axis='both', color='k', linestyle=':',
+            linewidth=1, alpha=0.2)
+
+    #fig.subplots_adjust(top=0.935)
+    #fig.subplots_adjust(left=0.180)
+
+    if xlim is not None:
+        ax.set_xlim(xlim)
+
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+    if savefig:
+        fig.savefig(savefig)
+    else:
+        plt.show()
+
+    plt.clf()
+    plt.cla()
+    plt.close()
+
+    return
 
